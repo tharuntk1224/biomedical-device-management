@@ -1,0 +1,11 @@
+Event ID,Timestamp,User,Action,Target,Target ID,Details
+AUD-5001,2026-10-13T19:42:46,admin,CALIBRATION_PASSED,CalibrationRecord,CAL-2001,Device DEV-1001 passed calibration. Cert #CERT-2026-8001 issued. Valid until: 2027-02-09
+AUD-5002,2026-10-13T19:42:46,admin,CALIBRATION_PASSED,CalibrationRecord,CAL-2002,Device DEV-1002 passed calibration. Cert #CERT-2026-8002 issued. Valid until: 2026-10-17
+AUD-5003,2026-10-13T19:42:46,admin,CALIBRATION_PASSED,CalibrationRecord,CAL-2003,Device DEV-1003 passed calibration. Cert #CERT-2026-8003 issued. Valid until: 2027-05-13
+AUD-5004,2026-10-13T19:42:46,admin,CALIBRATION_PASSED,CalibrationRecord,CAL-2004,Device DEV-1004 passed calibration. Cert #CERT-2026-8004 issued. Valid until: 2026-08-12
+AUD-5005,2026-10-13T19:42:46,admin,CALIBRATION_PASSED,CalibrationRecord,CAL-2005,Device DEV-1005 passed calibration. Cert #CERT-2026-8005 issued. Valid until: 2027-09-13
+AUD-5006,2026-10-13T19:42:46,admin,CALIBRATION_PASSED,CalibrationRecord,CAL-2006,Device DEV-1006 passed calibration. Cert #CERT-2026-8006 issued. Valid until: 2027-02-09
+AUD-5007,2026-10-13T19:42:46,admin,MAINTENANCE_REQUEST_CREATED,MaintenanceRequest,REQ-4001,Created PREVENTIVE request for device DEV-1008: Routine sensor cassette replacement and fluidic flush
+AUD-5008,2026-10-13T19:42:46,admin,LOGOUT,User,USR-001,Session ended
+AUD-5009,2026-10-13T19:42:46,admin,LOGIN_SUCCESS,User,USR-001,User logged in with role: ADMIN
+AUD-5010,2026-10-13T19:42:54.212127600,admin,LOGIN_SUCCESS,User,USR-001,User logged in with role: ADMIN

@@ -1,0 +1,35 @@
+================================================================================
+         HOSPITAL BIOMEDICAL ENGINEERING COMPLIANCE & SAFETY AUDIT REPORT       
+================================================================================
+Generated At: 2026-10-13 22:53:20
+Hospital: Central Memorial Health System
+Scope: Biomedical Device Safety & Regulatory Audit Simulation
+--------------------------------------------------------------------------------
+EQUIPMENT INVENTORY METRICS:
+  Total Registered Devices          : 8
+  Active Devices (In-Service)       : 6
+  Devices Under Maintenance         : 0
+  Devices Out of Service (Locked)   : 0
+
+CALIBRATION COMPLIANCE STATUS:
+  Valid Calibrations                : 4
+  Due Soon (Next 7 Days)            : 1
+  Due Today                         : 0
+  Overdue Calibrations              : 3
+  Calibration Exempt Devices        : 0
+  Failed Calibration Events         : 0
+
+KEY PERFORMANCE INDICATOR (KPI):
+  Overall Calibration Compliance    : 62.5% (5 of 8 devices compliant)
+  Formula: (Valid + Due Soon) / (Total Requiring Periodic Calibration) * 100
+
+MAINTENANCE OPERATIONS & DOWNTIME:
+  Active Open Work Orders           : 1
+  Completed Maintenance Jobs        : 0
+  Total Maintenance Expenditure     : $0
+  Total Cumulative Downtime         : 0.0 Hours
+================================================================================
+IMPORTANT SAFETY DISCLAIMER:
+This simulated compliance report is generated for educational and training
+purposes only. It does not certify clinical adherence to ISO 17025 or FDA 21 CFR 820.
+================================================================================

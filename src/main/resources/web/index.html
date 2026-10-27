@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biomedical Registry & Clinical Calibration</title>
+    <style>
+        :root {
+            --bg-deep: #020617;
+            --bg-card: rgba(8, 16, 32, 0.92);
+            --border-glow: rgba(0, 242, 254, 0.35);
+            --border-subtle: #1e293b;
+            --cyan: #00f2fe;
+            --cyan-glow: rgba(0, 242, 254, 0.45);
+            --teal: #14b8a6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-cyan: #38bdf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius: 12px;
+            --card-radius: 16px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        #cyber-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: auto;
+        }
+        .top-bar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 2.5rem;
+            background: rgba(2, 6, 23, 0.75);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(0, 242, 254, 0.15);
+        }
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #00f2fe, #0284c7);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: #020617;
+            font-size: 1.1rem;
+            box-shadow: 0 0 15px var(--cyan-glow);
+        }
+        .brand-name {
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            color: #fff;
+            text-transform: uppercase;
+        }
+        .status-sync {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            color: var(--success);
+            text-transform: uppercase;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+        .bottom-status {
+            position: fixed;
+            bottom: 1rem;
+            left: 2rem;
+            z-index: 10;
+            font-size: 0.75rem;
+            font-family: monospace;
+            color: var(--cyan);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
+            pointer-events: none;
+        }
+        #auth-view {
+            position: relative;
+            z-index: 5;
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: var(--card-radius);
+            box-shadow: 0 0 40px rgba(0, 242, 254, 0.15), inset 0 0 20px rgba(0, 242, 254, 0.04);
+            backdrop-filter: blur(20px);
+            padding: 2.75rem 2.5rem;
+            width: 100%;
+            max-width: 480px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .auth-header { text-align: center; margin-bottom: 2rem; }
+        .auth-title {
+            font-size: 1.55rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            color: #fff;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+        }
+        .auth-subtitle { font-size: 0.825rem; color: var(--text-muted); line-height: 1.45; }
+        .auth-field { margin-bottom: 1.25rem; position: relative; }
+        .auth-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: var(--text-cyan);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .auth-input {
+            width: 100%;
+            background: rgba(2, 6, 23, 0.85);
+            border: 1px solid rgba(0, 242, 254, 0.25);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .auth-input:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+        }
+        .password-wrapper { position: relative; }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-cyan {
+            width: 100%;
+            height: 48px;
+            background: #00f2fe;
+            color: #020617;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 0.75rem;
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-cyan:hover {
+            background: #38bdf8;
+            box-shadow: 0 0 35px rgba(0, 242, 254, 0.7);
+            transform: translateY(-1px);
+        }
+        .quick-roles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+        .role-chip {
+            background: rgba(0, 242, 254, 0.08);
+            border: 1px solid rgba(0, 242, 254, 0.25);
+            color: var(--text-cyan);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .role-chip:hover {
+            background: rgba(0, 242, 254, 0.25);
+            color: #fff;
+        }
+        .auth-switch {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 1.5rem;
+        }
+        .auth-switch a {
+            color: var(--cyan);
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        #app-view { display: none; position: relative; z-index: 5; }
+        .app-header-nav {
+            background: rgba(15, 23, 42, 0.85);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-tabs { display: flex; gap: 6px; }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--text-muted);
+            padding: 14px 18px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { color: #fff; }
+        .tab-btn.active {
+            color: var(--cyan);
+            border-bottom-color: var(--cyan);
+        }
+        .user-controls { display: flex; align-items: center; gap: 12px; }
+        .btn-export {
+            background: rgba(0, 242, 254, 0.12);
+            border: 1px solid rgba(0, 242, 254, 0.4);
+            color: var(--cyan);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-export:hover {
+            background: rgba(0, 242, 254, 0.25);
+            box-shadow: 0 0 15px var(--cyan-glow);
+        }
+        .btn-logout {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #f87171;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-logout:hover { background: rgba(239, 68, 68, 0.25); }
+        main { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .section-title { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.01em; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+        .kpi-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--cyan); }
+        .kpi-card.success::before { background: var(--success); }
+        .kpi-card.danger::before { background: var(--danger); }
+        .kpi-card.warning::before { background: var(--warning); }
+        .kpi-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+        .kpi-value { font-size: 2.1rem; font-weight: 800; margin: 8px 0; }
+        .kpi-desc { font-size: 0.8rem; color: var(--text-muted); }
+        .table-container {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius);
+            overflow-x: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th {
+            background: rgba(2, 6, 23, 0.95);
+            color: var(--text-cyan);
+            padding: 14px 18px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        td { padding: 14px 18px; border-bottom: 1px solid rgba(30, 41, 59, 0.7); }
+        tr:hover td { background: rgba(30, 41, 59, 0.5); }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; }
+        .badge-operational { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-out-of-service { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-under-maintenance { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-retired { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+        .badge-valid { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .badge-due-soon { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .badge-overdue { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .btn {
+            background: #0284c7;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #0369a1; }
+        .btn-sm { padding: 4px 10px; font-size: 0.75rem; }
+        .btn-success { background: #059669; }
+        .btn-success:hover { background: #047857; }
+        .btn-danger { background: #dc2626; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-secondary { background: #334155; }
+        .btn-secondary:hover { background: #475569; }
+        .controls-bar { display: flex; gap: 12px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+        .search-input {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-subtle);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            min-width: 280px;
+        }
+        .search-input:focus { outline: none; border-color: var(--cyan); }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: var(--card-radius);
+            width: 90%;
+            max-width: 620px;
+            padding: 2.25rem;
+            box-shadow: 0 0 50px rgba(0, 242, 254, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+        .close-btn:hover { color: #fff; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-cyan); text-transform: uppercase; }
+        .form-control {
+            width: 100%;
+            background: #020617;
+            border: 1px solid var(--border-subtle);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .form-control:focus { outline: none; border-color: var(--cyan); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .report-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(2, 6, 23, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 12px 18px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .report-item:hover { border-color: var(--cyan); background: rgba(15, 23, 42, 0.95); }
+        .report-info h4 { font-size: 0.95rem; font-weight: 700; color: #fff; }
+        .report-info p { font-size: 0.75rem; color: var(--text-muted); }
+        .btn-download {
+            background: var(--cyan);
+            color: #020617;
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+        }
+        .btn-download:hover { background: #38bdf8; box-shadow: 0 0 15px var(--cyan-glow); }
+        .cert-box {
+            background: #020617;
+            border: 2px dashed var(--cyan);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        /* AI COPILOT ASSISTANT STYLES */
+        .ai-floating-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 2rem;
+            z-index: 990;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, rgba(8, 16, 32, 0.95), rgba(15, 23, 42, 0.95));
+            border: 1px solid var(--cyan);
+            border-radius: 30px;
+            padding: 10px 20px;
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.35);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .ai-floating-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 35px rgba(0, 242, 254, 0.65);
+            background: linear-gradient(135deg, rgba(14, 28, 56, 0.98), rgba(20, 35, 65, 0.98));
+        }
+        .ai-spark { font-size: 1.1rem; }
+        .ai-pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #00f2fe;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00f2fe;
+            animation: pulse-ai 1.8s infinite;
+        }
+        @keyframes pulse-ai {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.7); }
+        }
+        .ai-chat-drawer {
+            position: fixed;
+            bottom: 5.5rem;
+            right: 2rem;
+            width: 440px;
+            max-width: calc(100vw - 2.5rem);
+            height: 560px;
+            max-height: calc(100vh - 7rem);
+            background: rgba(8, 16, 32, 0.96);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 242, 254, 0.25);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUpAi 0.25s ease-out forwards;
+        }
+        @keyframes slideUpAi {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .ai-drawer-header {
+            padding: 1rem 1.25rem;
+            background: rgba(2, 6, 23, 0.9);
+            border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ai-header-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-engine-badge {
+            font-size: 0.65rem;
+            background: rgba(0, 242, 254, 0.15);
+            color: var(--cyan);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .ai-chat-body {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .ai-msg {
+            max-width: 90%;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 0.825rem;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+        .ai-msg.user {
+            align-self: flex-end;
+            background: #0284c7;
+            color: #fff;
+            border-bottom-right-radius: 2px;
+        }
+        .ai-msg.bot {
+            align-self: flex-start;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(0, 242, 254, 0.22);
+            color: #f1f5f9;
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .ai-msg-engine {
+            font-size: 0.65rem;
+            color: var(--cyan);
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.05em;
+        }
+        .ai-suggestions {
+            padding: 8px 12px;
+            background: rgba(2, 6, 23, 0.8);
+            border-top: 1px solid rgba(0, 242, 254, 0.1);
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .ai-chip {
+            font-size: 0.72rem;
+            color: var(--text-cyan);
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(0, 242, 254, 0.25);
+            padding: 4px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ai-chip:hover {
+            background: rgba(0, 242, 254, 0.2);
+            color: #fff;
+            border-color: var(--cyan);
+        }
+        .ai-input-bar {
+            padding: 10px 12px;
+            background: rgba(2, 6, 23, 0.95);
+            border-top: 1px solid rgba(0, 242, 254, 0.2);
+            display: flex;
+            gap: 8px;
+        }
+        .ai-input-bar input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #1e293b;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.825rem;
+            outline: none;
+        }
+        .ai-input-bar input:focus { border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan-glow); }
+        .ai-input-bar button {
+            background: var(--cyan);
+            border: none;
+            color: #020617;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ai-input-bar button:hover { background: #38bdf8; box-shadow: 0 0 12px var(--cyan-glow); }
+        .ai-loading-dots {
+            display: inline-flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .ai-loading-dots span {
+            width: 5px; height: 5px; background: var(--cyan); border-radius: 50%;
+            animation: dotFlashing 1s infinite alternate;
+        }
+        .ai-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .ai-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotFlashing {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="cyber-canvas"></canvas>
+
+    <header class="top-bar">
+        <a href="#" class="brand-logo">
+            <div class="brand-icon">§</div>
+            <div class="brand-name">Biomed Registry</div>
+        </a>
+        <div class="status-sync">
+            <div class="status-dot"></div>
+            <span>Sync Operational</span>
+        </div>
+    </header>
+
+    <div class="bottom-status">
+        SYS_AXIS_ROTATION: active | DRAG MOUSE ON BACKGROUND TO ROTATE 3D GRID
+    </div>
+<section id="auth-view">
+        <div class="auth-card" id="card-login">
+            <div class="auth-header">
+                <h2 class="auth-title">Clinical Calibration Registry</h2>
+                <p class="auth-subtitle">Hospitals and laboratories must regularly calibrate biomedical devices and maintain maintenance records to comply with regulatory standards.</p>
+            </div>
+            <div class="alert-error" id="login-error"></div>
+            <form onsubmit="handleLoginSubmit(event)">
+                <div class="auth-field">
+                    <label class="auth-label">Operator Email</label>
+                    <input type="text" id="login-identifier" class="auth-input" value="admin@hospital.com" placeholder="admin@hospital.com" required>
+                </div>
+                <div class="auth-field">
+                    <label class="auth-label">Access Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="login-password" class="auth-input" value="Admin@123" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('login-password')">👁</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-cyan">
+                    <span>🧪</span> INITIALIZE SYSTEM SYNC
+                </button>
+            </form>
+            <div style="margin-top: 1.25rem; text-align: center;">
+                <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Quick Demo Autofill:</span>
+                <div class="quick-roles">
+                    <button type="button" class="role-chip" onclick="fillCreds('admin@hospital.com', 'Admin@123')">Admin</button>
+                    <button type="button" class="role-chip" onclick="fillCreds('tech1@hospital.org', 'Tech@123')">BMET Tech 1</button>
+                    <button type="button" class="role-chip" onclick="fillCreds('nurse.blake@hospital.org', 'Staff@123')">ICU Staff</button>
+                    <button type="button" class="role-chip" onclick="fillCreds('auditor@hospital.org', 'Audit@123')">QA Auditor</button>
+                </div>
+            </div>
+            <div class="auth-switch">
+                New Operator? <a onclick="showSignupCard()">CREATE ACCOUNT</a>
+            </div>
+        </div>
+
+        <div class="auth-card" id="card-signup" style="display: none;">
+            <div class="auth-header">
+                <h2 class="auth-title">Create Operator Account</h2>
+                <p class="auth-subtitle">Register a certified hospital operator for biomedical calibration and maintenance governance.</p>
+            </div>
+            <div class="alert-error" id="signup-error"></div>
+            <form onsubmit="handleSignupSubmit(event)">
+                <div class="auth-field">
+                    <label class="auth-label">Full Operator Name</label>
+                    <input type="text" id="reg-fullname" class="auth-input" placeholder="e.g. Dr. Tharun Kumar" required>
+                </div>
+                <div class="form-row">
+                    <div class="auth-field">
+                        <label class="auth-label">Operator Username</label>
+                        <input type="text" id="reg-username" class="auth-input" placeholder="e.g. tharun_bmet" required>
+                    </div>
+                    <div class="auth-field">
+                        <label class="auth-label">Operator Email</label>
+                        <input type="email" id="reg-email" class="auth-input" placeholder="tharun@hospital.org" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="auth-field">
+                        <label class="auth-label">Hospital Department</label>
+                        <input type="text" id="reg-user-dept" class="auth-input" placeholder="Biomedical Engineering" required>
+                    </div>
+                    <div class="auth-field">
+                        <label class="auth-label">System Role</label>
+                        <select id="reg-user-role" class="auth-input" style="background: #020617;">
+                            <option value="ADMIN">ADMIN - Full Governance</option>
+                            <option value="TECHNICIAN" selected>TECHNICIAN - BMET Tests</option>
+                            <option value="STAFF">STAFF - Requests</option>
+                            <option value="AUDITOR">AUDITOR - QA Auditor</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="auth-field">
+                        <label class="auth-label">Access Password</label>
+                        <input type="password" id="reg-user-pass" class="auth-input" placeholder="••••••••" required>
+                    </div>
+                    <div class="auth-field">
+                        <label class="auth-label">Confirm Password</label>
+                        <input type="password" id="reg-user-confirm" class="auth-input" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-cyan">
+                    <span>âœ¨</span> REGISTER NEW OPERATOR
+                </button>
+            </form>
+            <div class="auth-switch">
+                Already registered? <a onclick="showLoginCard()">SIGN IN TO REGISTRY</a>
+            </div>
+        </div>
+    </section>
+
+    <div id="app-view">
+        <div class="app-header-nav">
+            <nav class="nav-tabs">
+                <button class="tab-btn active" onclick="switchTab('dashboard')">Compliance Dashboard</button>
+                <button class="tab-btn" onclick="switchTab('devices')">Biomedical Devices</button>
+                <button class="tab-btn" onclick="switchTab('calibrations')">Calibration Tests</button>
+                <button class="tab-btn" onclick="switchTab('maintenance')">Maintenance Orders</button>
+                <button class="tab-btn" onclick="switchTab('audit')">Audit Logs</button>
+            </nav>
+            <div class="user-controls">
+                <span id="operator-badge" style="font-size: 0.85rem; font-weight: 700; color: var(--text-cyan);"></span>
+                <button class="btn-export" onclick="openReportsModal()">
+                    <span>📥</span> Export Reports
+                </button>
+                <button class="btn-logout" onclick="handleLogout()">Disconnect</button>
+            </div>
+        </div>
+
+        <main>
+            <section id="tab-dashboard">
+                <div class="section-header">
+                    <h2 class="section-title">Hospital Compliance & KPI Dashboard</h2>
+                    <button class="btn btn-secondary btn-sm" onclick="loadAllData()">Refresh Data</button>
+                </div>
+                <div class="kpi-grid">
+                    <div class="kpi-card success">
+                        <div class="kpi-label">Calibration Compliance</div>
+                        <div class="kpi-value" id="kpi-compliance">0.0%</div>
+                        <div class="kpi-desc" id="kpi-compliance-sub">0 of 0 subject devices</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Devices</div>
+                        <div class="kpi-value" id="kpi-total-devices">0</div>
+                        <div class="kpi-desc" id="kpi-active-devices">Active in clinical service: 0</div>
+                    </div>
+                    <div class="kpi-card danger">
+                        <div class="kpi-label">Safety Lockout (Out of Service)</div>
+                        <div class="kpi-value" id="kpi-oos">0</div>
+                        <div class="kpi-desc">Tolerance failure or critical faults</div>
+                    </div>
+                    <div class="kpi-card warning">
+                        <div class="kpi-label">Calibration Schedule</div>
+                        <div class="kpi-value" id="kpi-due-soon">0</div>
+                        <div class="kpi-desc" id="kpi-overdue">Overdue: 0 | Due Today: 0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Maintenance Expenditure</div>
+                        <div class="kpi-value" id="kpi-cost">$0.00</div>
+                        <div class="kpi-desc" id="kpi-downtime">Recorded Downtime: 0.0 hrs</div>
+                    </div>
+                </div>
+
+                <div class="section-header" style="margin-top: 2rem;">
+                    <h2 class="section-title">Equipment Requiring Immediate Attention</h2>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Device ID</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Operational Status</th>
+                                <th>Calibration Schedule</th>
+                                <th>Risk Score</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attention-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="tab-devices" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">Biomedical Device Inventory</h2>
+                    <button class="btn btn-success" onclick="openRegisterModal()">+ Register New Device</button>
+                </div>
+                <div class="controls-bar">
+                    <input type="text" id="device-search" class="search-input" placeholder="Search by name, ID, or asset..." oninput="filterDevices()">
+                    <select id="device-dept-filter" class="search-input" style="min-width: 180px;" onchange="filterDevices()">
+                        <option value="ALL">All Departments</option>
+                        <option value="ICU">Intensive Care Unit (ICU)</option>
+                        <option value="Emergency">Emergency Department</option>
+                        <option value="Cardiology">Cardiology</option>
+                        <option value="Radiology">Radiology</option>
+                        <option value="Pathology">Pathology / Laboratory</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Asset No</th>
+                                <th>Name & Model</th>
+                                <th>Category</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th>Calib Due</th>
+                                <th>Next Calib</th>
+                                <th>Risk Score</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="devices-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="tab-calibrations" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">Calibration Verification Center</h2>
+                    <button class="btn btn-primary" onclick="openCalibModal()">+ Run Calibration Test</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Record ID</th>
+                                <th>Device ID</th>
+                                <th>Test Date</th>
+                                <th>Result</th>
+                                <th>Technician</th>
+                                <th>Certificate No</th>
+                                <th>Tool Used</th>
+                                <th>Notes / Failure Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calibrations-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="tab-maintenance" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">Maintenance Work Orders & Requests</h2>
+                    <button class="btn btn-primary" onclick="openMaintenanceRequestModal()">+ Create Work Request</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Device ID</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Description</th>
+                                <th>Assigned Tech</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="maintenance-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="tab-audit" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">Tamper-Evident Audit Trail</h2>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event ID</th>
+                                <th>Timestamp</th>
+                                <th>Acting User</th>
+                                <th>Action Type</th>
+                                <th>Target Entity</th>
+                                <th>Target ID</th>
+                                <th>Event Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL: REPORT DOWNLOAD CENTER -->
+    <div class="modal-overlay" id="modal-reports">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 style="font-size:1.3rem; color:#fff;">Hospital Reports & Compliance Export Center</h2>
+                <button class="close-btn" onclick="closeModals()">&times;</button>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">
+                Select a report below to download the certified file directly to your local computer.
+            </p>
+            <div id="reports-list">
+                <div class="report-item">
+                    <div class="report-info">
+                        <h4>Hospital Compliance Audit Summary</h4>
+                        <p>Complete executive safety KPIs, formulas, and equipment downtime (.txt)</p>
+                    </div>
+                    <a href="/api/reports?type=compliance" download="compliance_summary_report.txt" class="btn-download">Download TXT</a>
+                </div>
+                <div class="report-item">
+                    <div class="report-info">
+                        <h4>Biomedical Device Inventory Dossier</h4>
+                        <p>Comprehensive roster of all hospital equipment, serials, and risk scores (.csv)</p>
+                    </div>
+                    <a href="/api/reports?type=inventory" download="device_inventory_report.csv" class="btn-download">Download CSV</a>
+                </div>
+                <div class="report-item">
+                    <div class="report-info">
+                        <h4>Calibration Verification History</h4>
+                        <p>Detailed log of all performed calibration sessions and certificates (.csv)</p>
+                    </div>
+                    <a href="/api/reports?type=calibrations" download="calibration_history_report.csv" class="btn-download">Download CSV</a>
+                </div>
+                <div class="report-item">
+                    <div class="report-info">
+                        <h4>Overdue Calibrations Roster</h4>
+                        <p>Targeted safety report of equipment requiring urgent recertification (.csv)</p>
+                    </div>
+                    <a href="/api/reports?type=overdue" download="overdue_calibrations_report.csv" class="btn-download">Download CSV</a>
+                </div>
+                <div class="report-item">
+                    <div class="report-info">
+                        <h4>Maintenance & Work Orders Log</h4>
+                        <p>Preventive, corrective, and emergency repairs, parts, and downtime (.csv)</p>
+                    </div>
+                    <a href="/api/reports?type=maintenance" download="maintenance_history_report.csv" class="btn-download">Download CSV</a>
+                </div>
+                <div class="report-item">
+                    <div class="report-info">
+                        <h4>Tamper-Evident Audit Trail</h4>
+                        <p>Immutable log of user logins, safety transitions, and retirements (.csv)</p>
+                    </div>
+                    <a href="/api/reports?type=audit" download="audit_logs_report.csv" class="btn-download">Download CSV</a>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border-subtle);">
+                <button class="btn btn-primary" onclick="downloadAllReportsSequentially()">
+                    <span>ðŸ“¦</span> Download All Reports
+                </button>
+                <button class="btn btn-secondary" onclick="closeModals()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: REGISTER DEVICE -->
+    <div class="modal-overlay" id="modal-register">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Register Biomedical Equipment</h2>
+                <button class="close-btn" onclick="closeModals()">&times;</button>
+            </div>
+            <form onsubmit="handleRegisterDevice(event)">
+                <div class="form-group">
+                    <label>Device Hierarchy Category</label>
+                    <select id="reg-type" class="form-control">
+                        <option value="1">Life-Support Device (Ventilator, Defibrillator, Infusion)</option>
+                        <option value="2">Diagnostic Device (ECG, Ultrasound, X-Ray)</option>
+                        <option value="3">Laboratory Device (Centrifuge, Blood Gas Analyzer)</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Asset Number</label>
+                        <input type="text" id="reg-asset" class="form-control" placeholder="AST-DEV-10" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Serial Number</label>
+                        <input type="text" id="reg-serial" class="form-control" placeholder="SN-998822" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Device Name</label>
+                    <input type="text" id="reg-name" class="form-control" placeholder="Puritan Bennett 980" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Manufacturer</label>
+                        <input type="text" id="reg-mfr" class="form-control" placeholder="Medtronic" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Model Number</label>
+                        <input type="text" id="reg-model" class="form-control" placeholder="PB980" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Department</label>
+                        <input type="text" id="reg-dept" class="form-control" placeholder="Intensive Care Unit (ICU)" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Calibration Frequency (Days)</label>
+                        <input type="number" id="reg-freq" class="form-control" value="180" required>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Register Equipment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CALIBRATION TEST -->
+    <div class="modal-overlay" id="modal-calib">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Simulated Calibration Test Session</h2>
+                <button class="close-btn" onclick="closeModals()">&times;</button>
+            </div>
+            <div id="calib-alert"></div>
+            <form onsubmit="handleRunCalibration(event)">
+                <div class="form-group">
+                    <label>Target Equipment</label>
+                    <select id="calib-device" class="form-control" required></select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Certifying BMET Technician</label>
+                        <input type="text" id="calib-tech" class="form-control" value="TECH-101" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Standard Equipment</label>
+                        <input type="text" id="calib-tool" class="form-control" value="Fluke VT900A Gas Flow Analyzer" required>
+                    </div>
+                </div>
+                <div style="background: #020617; padding: 14px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border-glow);">
+                    <div class="form-group">
+                        <label>Measurement Parameter</label>
+                        <input type="text" id="calib-param" class="form-control" value="Tidal Volume Output" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nominal Expected</label>
+                            <input type="number" step="0.01" id="calib-nominal" class="form-control" value="500.0" oninput="previewDeviation()" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Measured Value</label>
+                            <input type="number" step="0.01" id="calib-measured" class="form-control" value="502.5" oninput="previewDeviation()" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Unit of Measure</label>
+                            <input type="text" id="calib-unit" class="form-control" value="mL" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Allowed Tolerance (±)</label>
+                            <input type="number" step="0.01" id="calib-tolerance" class="form-control" value="10.0" oninput="previewDeviation()" required>
+                        </div>
+                    </div>
+                    <div id="calib-preview" style="font-size: 0.85rem; font-weight: 700; color: var(--cyan); margin-top: 6px;">
+                        Calculated Deviation: 2.500 mL (Tolerance ±10.000) -> [PASS]
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Session Notes</label>
+                    <input type="text" id="calib-notes" class="form-control" value="Routine preventive calibration verification.">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+                    <button type="submit" class="btn btn-cyan" style="width: auto; padding: 0 20px;">Execute Verification</button>
+                </div>
+            </form>
+            <div id="calib-cert-box" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: MAINTENANCE REQUEST -->
+    <div class="modal-overlay" id="modal-maint-req">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Create Maintenance Work Order</h2>
+                <button class="close-btn" onclick="closeModals()">&times;</button>
+            </div>
+            <form onsubmit="handleCreateMaintenance(event)">
+                <div class="form-group">
+                    <label>Select Device</label>
+                    <select id="maint-device" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Maintenance Nature</label>
+                    <select id="maint-type" class="form-control">
+                        <option value="PREVENTIVE">Preventive Maintenance (Routine inspection & cleaning)</option>
+                        <option value="CORRECTIVE">Corrective Maintenance (Fault/drift repair)</option>
+                        <option value="EMERGENCY">Emergency Maintenance (Immediate critical alarm)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Issue Description</label>
+                    <textarea id="maint-desc" class="form-control" rows="3" placeholder="Describe symptoms or clinical alert..." required></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: COMPLETE MAINTENANCE -->
+    <div class="modal-overlay" id="modal-maint-complete">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Complete Maintenance Work Order</h2>
+                <button class="close-btn" onclick="closeModals()">&times;</button>
+            </div>
+            <form onsubmit="handleCompleteMaintenance(event)">
+                <input type="hidden" id="complete-record-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Maintenance Cost ($)</label>
+                        <input type="number" step="0.01" min="0" id="complete-cost" class="form-control" value="180.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Downtime (Hours)</label>
+                        <input type="number" step="0.1" min="0" id="complete-downtime" class="form-control" value="3.0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Parts Replaced (comma separated)</label>
+                    <input type="text" id="complete-parts" class="form-control" placeholder="Sensor Board, HEPA Filter">
+                </div>
+                <div class="form-group">
+                    <label>Resolution Summary</label>
+                    <textarea id="complete-notes" class="form-control" rows="2">Replaced worn parts, performed electrical leakage safety check.</textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Complete & Enforce Safety</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FLOATING AI COPILOT BUTTON -->
+    <button id="ai-toggle-btn" class="ai-floating-btn" onclick="toggleAiDrawer()" title="Clinical AI Assistant">
+        <span class="ai-spark">⚡</span>
+        <span class="ai-btn-text">BioMed AI Copilot</span>
+        <span class="ai-pulse-dot"></span>
+    </button>
+
+    <!-- FLOATING AI COPILOT CHAT DRAWER -->
+    <div id="ai-chat-drawer" class="ai-chat-drawer">
+        <div class="ai-drawer-header">
+            <div>
+                <div class="ai-header-title">
+                    <span>⚡</span> BioMed AI Copilot
+                </div>
+                <div class="ai-engine-badge">Gemini Enhanced & Clinical Expert</div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-sm btn-secondary" onclick="clearAiChat()" title="Clear Chat" style="padding: 2px 8px; font-size: 0.75rem;">Clear</button>
+                <button type="button" class="close-btn" onclick="toggleAiDrawer()">&times;</button>
+            </div>
+        </div>
+        <div id="ai-chat-messages" class="ai-chat-body">
+            <div class="ai-msg bot">
+                <div class="ai-msg-engine">BioMed Clinical Intelligence</div>
+                <div>
+                    Hello! I am your <strong>BioMed AI Copilot</strong>. I can assist you with:
+                    <ul style="margin: 6px 0 6px 18px;">
+                        <li>Equipment diagnostics & live hospital telemetry</li>
+                        <li>Calibration tolerance mathematical verification</li>
+                        <li>Post-maintenance safety recalibration interlocks</li>
+                        <li>FDA 21 CFR Part 820 & Joint Commission regulatory standards</li>
+                    </ul>
+                    Type a question below or tap any suggested query!
+                </div>
+            </div>
+        </div>
+        <div id="ai-suggestions-container" class="ai-suggestions">
+            <div class="ai-chip" onclick="askAiPrompt('📊 Hospital Compliance Health Check')">📊 Compliance Check</div>
+            <div class="ai-chip" onclick="askAiPrompt('⚠️ Show Overdue Equipment')">⚠️ Overdue Equipment</div>
+            <div class="ai-chip" onclick="askAiPrompt('📐 Calibration Tolerance Formulas')">📐 Tolerance Formulas</div>
+            <div class="ai-chip" onclick="askAiPrompt('🔒 Post-Maintenance Safety Interlock')">🔒 Safety Interlock</div>
+            <div class="ai-chip" onclick="askAiPrompt('🔍 Tell me about DEV-1001')">🔍 Query DEV-1001</div>
+            <div class="ai-chip" onclick="askAiPrompt('📜 Regulatory Standards (FDA & TJC)')">📜 FDA / TJC Standards</div>
+        </div>
+        <form id="ai-input-form" class="ai-input-bar" onsubmit="handleAiSubmit(event)">
+            <input type="text" id="ai-user-input" placeholder="Ask BioMed AI (e.g. 'Status of ICU Ventilator')..." autocomplete="off" required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+<script>
+        const canvas = document.getElementById('cyber-canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initNodes();
+        });
+
+        const NODES_COUNT = 75;
+        let nodes = [];
+        let mouseX = width / 2;
+        let mouseY = height / 2;
+        let isDragging = false;
+        let rotationAngle = 0;
+
+        function initNodes() {
+            nodes = [];
+            for (let i = 0; i < NODES_COUNT; i++) {
+                nodes.push({
+                    x: (Math.random() - 0.5) * width * 1.2,
+                    y: (Math.random() - 0.5) * height * 1.2,
+                    z: (Math.random() - 0.5) * 600,
+                    vx: (Math.random() - 0.5) * 0.4,
+                    vy: (Math.random() - 0.5) * 0.4,
+                    vz: (Math.random() - 0.5) * 0.4
+                });
+            }
+        }
+        initNodes();
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX - width / 2;
+            mouseY = e.clientY - height / 2;
+        });
+
+        window.addEventListener('mousedown', () => isDragging = true);
+        window.addEventListener('mouseup', () => isDragging = false);
+
+        function drawPlexus() {
+            ctx.clearRect(0, 0, width, height);
+            rotationAngle += isDragging ? 0.006 : 0.0015;
+            const cos = Math.cos(rotationAngle);
+            const sin = Math.sin(rotationAngle);
+            const fov = 400;
+
+            const projected = nodes.map(n => {
+                n.x += n.vx;
+                n.y += n.vy;
+                n.z += n.vz;
+
+                if (Math.abs(n.x) > width * 0.6) n.vx *= -1;
+                if (Math.abs(n.y) > height * 0.6) n.vy *= -1;
+                if (Math.abs(n.z) > 300) n.vz *= -1;
+
+                const rx = n.x * cos - n.z * sin;
+                const rz = n.z * cos + n.x * sin;
+                const scale = fov / (fov + rz + 400);
+
+                return {
+                    x: width / 2 + rx * scale + (mouseX * 0.05),
+                    y: height / 2 + n.y * scale + (mouseY * 0.05),
+                    scale: scale
+                };
+            });
+
+            ctx.lineWidth = 0.8;
+            for (let i = 0; i < projected.length; i++) {
+                for (let j = i + 1; j < projected.length; j++) {
+                    const p1 = projected[i];
+                    const p2 = projected[j];
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 140) {
+                        const alpha = (1 - dist / 140) * 0.28;
+                        ctx.strokeStyle = `rgba(0, 242, 254, ${alpha})`;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            for (let i = 0; i < projected.length; i++) {
+                const p = projected[i];
+                const radius = Math.max(1, p.scale * 2.5);
+                ctx.fillStyle = '#00f2fe';
+                ctx.shadowColor = 'rgba(0, 242, 254, 0.8)';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.shadowBlur = 0;
+            requestAnimationFrame(drawPlexus);
+        }
+        drawPlexus();
+
+        let currentUser = null;
+
+        function fillCreds(ident, pass) {
+            document.getElementById('login-identifier').value = ident;
+            document.getElementById('login-password').value = pass;
+        }
+
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function showSignupCard() {
+            document.getElementById('card-login').style.display = 'none';
+            document.getElementById('card-signup').style.display = 'block';
+            document.getElementById('login-error').style.display = 'none';
+        }
+
+        function showLoginCard() {
+            document.getElementById('card-signup').style.display = 'none';
+            document.getElementById('card-login').style.display = 'block';
+            document.getElementById('signup-error').style.display = 'none';
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('login-identifier').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const errBox = document.getElementById('login-error');
+            errBox.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = data;
+                    enterApp(data);
+                } else {
+                    errBox.textContent = data.error || 'Invalid operator credentials.';
+                    errBox.style.display = 'block';
+                }
+            } catch (err) {
+                errBox.textContent = 'Server connection failed.';
+                errBox.style.display = 'block';
+            }
+        }
+
+        async function handleSignupSubmit(e) {
+            e.preventDefault();
+            const fullName = document.getElementById('reg-fullname').value.trim();
+            const username = document.getElementById('reg-username').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const department = document.getElementById('reg-user-dept').value.trim();
+            const role = document.getElementById('reg-user-role').value;
+            const password = document.getElementById('reg-user-pass').value;
+            const confirm = document.getElementById('reg-user-confirm').value;
+            const errBox = document.getElementById('signup-error');
+            errBox.style.display = 'none';
+
+            if (password !== confirm) {
+                errBox.textContent = 'Passwords do not match.';
+                errBox.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fullName, username, email, department, role, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = data;
+                    enterApp(data);
+                } else {
+                    errBox.textContent = data.error || 'Failed to register operator.';
+                    errBox.style.display = 'block';
+                }
+            } catch (err) {
+                errBox.textContent = 'Server connection error.';
+                errBox.style.display = 'block';
+            }
+        }
+
+        function enterApp(user) {
+            document.getElementById('auth-view').style.display = 'none';
+            document.getElementById('app-view').style.display = 'block';
+            document.getElementById('operator-badge').textContent = `Operator: ${user.fullName} [${user.role}]`;
+            loadAllData();
+        }
+
+        async function handleLogout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+            } catch (ignored) {}
+            currentUser = null;
+            document.getElementById('app-view').style.display = 'none';
+            document.getElementById('auth-view').style.display = 'flex';
+            showLoginCard();
+        }
+
+        let allDevices = [];
+        let allCalibrations = [];
+        let allMaintenance = { requests: [], records: [] };
+
+        async function loadAllData() {
+            try {
+                const [compRes, devRes, calRes, maintRes, audRes] = await Promise.all([
+                    fetch('/api/compliance').then(r => r.json()),
+                    fetch('/api/devices').then(r => r.json()),
+                    fetch('/api/calibrations').then(r => r.json()),
+                    fetch('/api/maintenance').then(r => r.json()),
+                    fetch('/api/audit').then(r => r.json())
+                ]);
+
+                allDevices = devRes;
+                allCalibrations = calRes;
+                allMaintenance = maintRes;
+
+                renderCompliance(compRes);
+                renderDevices(devRes);
+                renderAttentionTable(devRes);
+                renderCalibrations(calRes);
+                renderMaintenance(maintRes);
+                renderAudit(audRes);
+                populateDeviceSelects(devRes);
+            } catch (e) {
+                console.error("Error loading dashboard data", e);
+            }
+        }
+
+        function renderCompliance(c) {
+            document.getElementById('kpi-compliance').textContent = c.compliancePercentage.toFixed(1) + '%';
+            document.getElementById('kpi-compliance-sub').textContent = c.compliantCount + ' of ' + c.subjectCount + ' devices compliant';
+            document.getElementById('kpi-total-devices').textContent = c.totalDevices;
+            document.getElementById('kpi-active-devices').textContent = 'Active (Operational): ' + c.activeDevices;
+            document.getElementById('kpi-oos').textContent = c.outOfService;
+            document.getElementById('kpi-due-soon').textContent = c.dueSoon;
+            document.getElementById('kpi-overdue').textContent = 'Overdue: ' + c.overdue + ' | Due Today: ' + c.dueToday;
+            document.getElementById('kpi-cost').textContent = '$' + c.totalCost.toFixed(2);
+            document.getElementById('kpi-downtime').textContent = 'Recorded Downtime: ' + c.totalDowntime.toFixed(1) + ' hrs';
+        }
+
+        function renderAttentionTable(devices) {
+            const body = document.getElementById('attention-body');
+            body.innerHTML = '';
+            const needy = devices.filter(d => d.status === 'OUT_OF_SERVICE' || d.dueStatus === 'OVERDUE' || d.dueStatus === 'DUE_SOON');
+            if (needy.length === 0) {
+                body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8;">All biomedical devices are currently compliant and operational.</td></tr>';
+                return;
+            }
+            needy.forEach(d => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${d.id}</strong></td>
+                    <td>${d.name}</td>
+                    <td>${d.department}</td>
+                    <td><span class="badge ${getStatusBadgeClass(d.status)}">${d.status}</span></td>
+                    <td><span class="badge ${getDueBadgeClass(d.dueStatus)}">${d.dueStatus}</span></td>
+                    <td><strong>${d.riskScore.toFixed(2)}</strong></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="quickCalibrate('${d.id}')">Calibrate</button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function renderDevices(devices) {
+            const body = document.getElementById('devices-body');
+            body.innerHTML = '';
+            devices.forEach(d => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${d.id}</strong></td>
+                    <td>${d.assetNumber}</td>
+                    <td><strong>${d.name}</strong><br><small style="color:#94a3b8;">${d.manufacturer} ${d.model}</small></td>
+                    <td>${d.category}</td>
+                    <td>${d.department}</td>
+                    <td><span class="badge ${getStatusBadgeClass(d.status)}">${d.status}</span></td>
+                    <td><span class="badge ${getDueBadgeClass(d.dueStatus)}">${d.dueStatus}</span></td>
+                    <td>${d.nextCalib}</td>
+                    <td><strong>${d.riskScore.toFixed(2)}</strong></td>
+                    <td>
+                        <div style="display:flex; gap:6px;">
+                            ${d.status !== 'RETIRED' ? `
+                                <button class="btn btn-primary btn-sm" onclick="quickCalibrate('${d.id}')">Calib</button>
+                                <button class="btn btn-secondary btn-sm" onclick="quickRepair('${d.id}')">Repair</button>
+                                <button class="btn btn-danger btn-sm" onclick="retireDevice('${d.id}')">Retire</button>
+                            ` : '<span style="color:#64748b; font-size:0.75rem;">Decommissioned</span>'}
+                        </div>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function renderCalibrations(records) {
+            const body = document.getElementById('calibrations-body');
+            body.innerHTML = '';
+            records.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${r.id}</strong></td>
+                    <td>${r.deviceId}</td>
+                    <td>${r.date}</td>
+                    <td><span class="badge ${r.status === 'PASSED' ? 'badge-operational' : 'badge-out-of-service'}">${r.status}</span></td>
+                    <td>${r.tech}</td>
+                    <td><strong>${r.certNo || 'NONE'}</strong></td>
+                    <td>${r.tool}</td>
+                    <td>${r.failure ? `<span style="color:#f87171;">${r.failure}</span>` : (r.notes || 'Compliant')}</td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function renderMaintenance(m) {
+            const body = document.getElementById('maintenance-body');
+            body.innerHTML = '';
+            m.requests.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${r.id}</strong></td>
+                    <td>${r.deviceId}</td>
+                    <td>${r.type}</td>
+                    <td><span class="badge ${getStatusBadgeClass(r.status)}">${r.status}</span></td>
+                    <td>${r.desc}</td>
+                    <td>${r.tech}</td>
+                    <td>
+                        ${r.status === 'REQUESTED' || r.status === 'SCHEDULED' ? `
+                            <button class="btn btn-primary btn-sm" onclick="startMaintenance('${r.id}')">Start Work</button>
+                        ` : ''}
+                        ${r.status === 'IN_PROGRESS' ? `
+                            <button class="btn btn-success btn-sm" onclick="openCompleteMaintenanceModal('${r.id}')">Finish Work</button>
+                        ` : ''}
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function renderAudit(logs) {
+            const body = document.getElementById('audit-body');
+            body.innerHTML = '';
+            logs.forEach(l => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${l.id}</strong></td>
+                    <td>${l.timestamp}</td>
+                    <td><strong>${l.user}</strong></td>
+                    <td>${l.action}</td>
+                    <td>${l.target}</td>
+                    <td>${l.targetId}</td>
+                    <td>${l.details}</td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'OPERATIONAL': return 'badge-operational';
+                case 'OUT_OF_SERVICE': return 'badge-out-of-service';
+                case 'UNDER_MAINTENANCE':
+                case 'IN_PROGRESS': return 'badge-under-maintenance';
+                case 'CALIBRATION_PENDING':
+                case 'REQUESTED':
+                case 'SCHEDULED': return 'badge-pending';
+                case 'RETIRED': return 'badge-retired';
+                default: return 'badge-pending';
+            }
+        }
+
+        function getDueBadgeClass(due) {
+            switch(due) {
+                case 'VALID': return 'badge-valid';
+                case 'DUE_SOON': return 'badge-due-soon';
+                case 'OVERDUE': return 'badge-overdue';
+                default: return 'badge-valid';
+            }
+        }
+
+        function populateDeviceSelects(devices) {
+            const calibSel = document.getElementById('calib-device');
+            const maintSel = document.getElementById('maint-device');
+            calibSel.innerHTML = '';
+            maintSel.innerHTML = '';
+            devices.filter(d => d.status !== 'RETIRED').forEach(d => {
+                const opt1 = document.createElement('option');
+                opt1.value = d.id;
+                opt1.textContent = `${d.id} - ${d.name} (${d.status})`;
+                calibSel.appendChild(opt1);
+
+                const opt2 = document.createElement('option');
+                opt2.value = d.id;
+                opt2.textContent = `${d.id} - ${d.name} (${d.department})`;
+                maintSel.appendChild(opt2);
+            });
+        }
+
+        function previewDeviation() {
+            const nom = parseFloat(document.getElementById('calib-nominal').value) || 0;
+            const meas = parseFloat(document.getElementById('calib-measured').value) || 0;
+            const tol = parseFloat(document.getElementById('calib-tolerance').value) || 0;
+            const unit = document.getElementById('calib-unit').value || '';
+            const dev = Math.abs(meas - nom);
+            const passed = dev <= tol;
+            const preview = document.getElementById('calib-preview');
+            preview.style.color = passed ? '#34d399' : '#f87171';
+            preview.textContent = `Calculated Deviation: ${dev.toFixed(3)} ${unit} (Allowed ±${tol.toFixed(3)}) -> [${passed ? 'PASS' : 'FAIL - TOLERANCE EXCEEDED'}]`;
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('main > section').forEach(s => s.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).style.display = 'block';
+            event.target.classList.add('active');
+        }
+
+        function filterDevices() {
+            const q = document.getElementById('device-search').value.toLowerCase();
+            const dept = document.getElementById('device-dept-filter').value;
+            const filtered = allDevices.filter(d => {
+                const matchQ = d.name.toLowerCase().includes(q) || d.id.toLowerCase().includes(q) || d.assetNumber.toLowerCase().includes(q);
+                const matchDept = dept === 'ALL' || d.department.includes(dept);
+                return matchQ && matchDept;
+            });
+            renderDevices(filtered);
+        }
+
+        async function handleRegisterDevice(e) {
+            e.preventDefault();
+            const payload = {
+                type: document.getElementById('reg-type').value,
+                assetNumber: document.getElementById('reg-asset').value,
+                serialNumber: document.getElementById('reg-serial').value,
+                name: document.getElementById('reg-name').value,
+                manufacturer: document.getElementById('reg-mfr').value,
+                model: document.getElementById('reg-model').value,
+                department: document.getElementById('reg-dept').value,
+                frequency: document.getElementById('reg-freq').value
+            };
+            const res = await fetch('/api/devices', { method: 'POST', body: JSON.stringify(payload) });
+            const data = await res.json();
+            if (data.success) {
+                closeModals();
+                loadAllData();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        }
+
+        async function handleRunCalibration(e) {
+            e.preventDefault();
+            const payload = {
+                deviceId: document.getElementById('calib-device').value,
+                equipment: document.getElementById('calib-tool').value,
+                paramName: document.getElementById('calib-param').value,
+                nominal: document.getElementById('calib-nominal').value,
+                measured: document.getElementById('calib-measured').value,
+                unit: document.getElementById('calib-unit').value,
+                tolerance: document.getElementById('calib-tolerance').value,
+                notes: document.getElementById('calib-notes').value
+            };
+            const res = await fetch('/api/calibrations', { method: 'POST', body: JSON.stringify(payload) });
+            const data = await res.json();
+            const alertBox = document.getElementById('calib-alert');
+            const certBox = document.getElementById('calib-cert-box');
+
+            if (data.status === 'PASSED') {
+                alertBox.innerHTML = '<div style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#6ee7b7; padding:10px; border-radius:8px; margin-bottom:10px;">SAFETY VERIFIED: Calibration measurements passed! Device returned to OPERATIONAL.</div>';
+                certBox.style.display = 'block';
+                certBox.innerHTML = `
+                    <div class="cert-box">
+                        <div style="font-size:1.1rem; font-weight:800; color:var(--cyan); letter-spacing:0.05em; margin-bottom:8px;">FORMAL CALIBRATION CERTIFICATE</div>
+                        <div style="font-size:1.1rem; font-weight:bold;">${data.certNo}</div>
+                        <div style="font-size:0.85rem; color:#94a3b8; margin: 4px 0;">Hospital Biomedical Verification Standard SIM-01</div>
+                        <div style="margin-top:10px;"><button class="btn btn-secondary btn-sm" onclick="closeModals()">Close & Save</button></div>
+                    </div>
+                `;
+            } else {
+                alertBox.innerHTML = `<div style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; padding:10px; border-radius:8px; margin-bottom:10px;">SAFETY ALERT: Tolerance exceeded! Device automatically locked into OUT_OF_SERVICE. Normal clinical operation prohibited. Reason: ${data.failureReason}</div>`;
+                certBox.style.display = 'none';
+            }
+            loadAllData();
+        }
+
+        async function handleCreateMaintenance(e) {
+            e.preventDefault();
+            const payload = {
+                deviceId: document.getElementById('maint-device').value,
+                type: document.getElementById('maint-type').value,
+                description: document.getElementById('maint-desc').value
+            };
+            const res = await fetch('/api/maintenance/request', { method: 'POST', body: JSON.stringify(payload) });
+            const data = await res.json();
+            if (data.success) {
+                closeModals();
+                loadAllData();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        }
+
+        async function handleCompleteMaintenance(e) {
+            e.preventDefault();
+            const recId = document.getElementById('complete-record-id').value;
+            const payload = {
+                recordId: recId,
+                cost: document.getElementById('complete-cost').value,
+                downtime: document.getElementById('complete-downtime').value,
+                parts: document.getElementById('complete-parts').value,
+                notes: document.getElementById('complete-notes').value
+            };
+            const res = await fetch('/api/maintenance/complete', { method: 'POST', body: JSON.stringify(payload) });
+            const data = await res.json();
+            if (data.success) {
+                closeModals();
+                loadAllData();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        }
+
+        async function startMaintenance(reqId) {
+            const res = await fetch('/api/maintenance/start', { method: 'POST', body: JSON.stringify({ requestId: reqId }) });
+            const data = await res.json();
+            if (data.success) {
+                loadAllData();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        }
+
+        function openCompleteMaintenanceModal(reqId) {
+            const req = allMaintenance.requests.find(r => r.id === reqId);
+            const rec = allMaintenance.records.find(r => r.deviceId === req.deviceId && r.status === 'IN_PROGRESS');
+            if (rec) {
+                document.getElementById('complete-record-id').value = rec.id;
+                document.getElementById('modal-maint-complete').style.display = 'flex';
+            } else {
+                alert('No active in-progress record found for this request.');
+            }
+        }
+
+        async function retireDevice(id) {
+            if (!confirm(`Are you sure you want to permanently DECOMMISSION & RETIRE device ${id}? This action cannot be reversed.`)) return;
+            const res = await fetch('/api/devices/retire', { method: 'POST', body: JSON.stringify({ id: id, reason: 'Decommissioned from web console' }) });
+            const data = await res.json();
+            if (data.success) {
+                loadAllData();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        }
+
+        function openReportsModal() {
+            document.getElementById('modal-reports').style.display = 'flex';
+        }
+
+        function downloadAllReportsSequentially() {
+            const types = ['compliance', 'inventory', 'calibrations', 'overdue', 'maintenance', 'audit'];
+            types.forEach((t, i) => {
+                setTimeout(() => {
+                    const link = document.createElement('a');
+                    link.href = '/api/reports?type=' + t;
+                    link.setAttribute('download', '');
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }, i * 400);
+            });
+        }
+
+        function quickCalibrate(devId) {
+            document.getElementById('calib-device').value = devId;
+            openCalibModal();
+        }
+
+        function quickRepair(devId) {
+            document.getElementById('maint-device').value = devId;
+            openMaintenanceRequestModal();
+        }
+
+        function openRegisterModal() { document.getElementById('modal-register').style.display = 'flex'; }
+        function openCalibModal() {
+            document.getElementById('calib-alert').innerHTML = '';
+            document.getElementById('calib-cert-box').style.display = 'none';
+            previewDeviation();
+            document.getElementById('modal-calib').style.display = 'flex';
+        }
+        function openMaintenanceRequestModal() { document.getElementById('modal-maint-req').style.display = 'flex'; }
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
+
+        // ==========================================
+        // AI COPILOT CLIENT LOGIC
+        // ==========================================
+        function toggleAiDrawer() {
+            const drawer = document.getElementById('ai-chat-drawer');
+            const isOpen = drawer.style.display === 'flex';
+            drawer.style.display = isOpen ? 'none' : 'flex';
+            if (!isOpen) {
+                document.getElementById('ai-user-input').focus();
+            }
+        }
+
+        function clearAiChat() {
+            const container = document.getElementById('ai-chat-messages');
+            container.innerHTML = `
+                <div class="ai-msg bot">
+                    <div class="ai-msg-engine">BioMed Clinical Intelligence</div>
+                    <div>Chat history cleared. How can I assist you with clinical equipment or calibrations?</div>
+                </div>
+            `;
+        }
+
+        function askAiPrompt(text) {
+            document.getElementById('ai-user-input').value = text;
+            handleAiSubmit(new Event('submit'));
+        }
+
+        async function handleAiSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('ai-user-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chatMessages = document.getElementById('ai-chat-messages');
+
+            // Append user message
+            const userMsgEl = document.createElement('div');
+            userMsgEl.className = 'ai-msg user';
+            userMsgEl.textContent = text;
+            chatMessages.appendChild(userMsgEl);
+
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Loading indicator
+            const loadingEl = document.createElement('div');
+            loadingEl.className = 'ai-msg bot';
+            loadingEl.id = 'ai-loading-msg';
+            loadingEl.innerHTML = `
+                <div class="ai-msg-engine">BioMed AI Copilot</div>
+                <div class="ai-loading-dots">
+                    <span></span><span></span><span></span>
+                    <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">Analyzing clinical telemetry...</span>
+                </div>
+            `;
+            chatMessages.appendChild(loadingEl);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const res = await fetch('/api/ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await res.json();
+                const loadEl = document.getElementById('ai-loading-msg');
+                if (loadEl) chatMessages.removeChild(loadEl);
+
+                if (data.success) {
+                    const botMsgEl = document.createElement('div');
+                    botMsgEl.className = 'ai-msg bot';
+                    botMsgEl.innerHTML = `
+                        <div class="ai-msg-engine">${data.engine || 'BioMed AI Copilot'}</div>
+                        <div>${formatMarkdownToHtml(data.reply)}</div>
+                    `;
+                    chatMessages.appendChild(botMsgEl);
+
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        updateAiSuggestions(data.suggestions);
+                    }
+                } else {
+                    const errorEl = document.createElement('div');
+                    errorEl.className = 'ai-msg bot';
+                    errorEl.innerHTML = `<div style="color:var(--danger)">Error: ${data.error || 'Failed to fetch AI response'}</div>`;
+                    chatMessages.appendChild(errorEl);
+                }
+            } catch (err) {
+                const loadEl = document.getElementById('ai-loading-msg');
+                if (loadEl) chatMessages.removeChild(loadEl);
+                const errorEl = document.createElement('div');
+                errorEl.className = 'ai-msg bot';
+                errorEl.innerHTML = `<div style="color:var(--danger)">Connection error: Could not reach AI service.</div>`;
+                chatMessages.appendChild(errorEl);
+            }
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function updateAiSuggestions(suggestions) {
+            const container = document.getElementById('ai-suggestions-container');
+            if (!container) return;
+            container.innerHTML = '';
+            suggestions.forEach(s => {
+                const chip = document.createElement('div');
+                chip.className = 'ai-chip';
+                chip.textContent = s;
+                chip.onclick = () => askAiPrompt(s);
+                container.appendChild(chip);
+            });
+        }
+
+        function formatMarkdownToHtml(md) {
+            if (!md) return '';
+            return md
+                .replace(/^### (.*$)/gim, '<h4 style="color:#38bdf8; margin: 8px 0 4px 0; font-size:0.95rem;">$1</h4>')
+                .replace(/^## (.*$)/gim, '<h3 style="color:#fff; margin: 10px 0 4px 0; font-size:1rem;">$1</h3>')
+                .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+                .replace(/`([^`]+)`/gim, '<code style="background:#020617; color:#38bdf8; padding:2px 5px; border-radius:4px; font-size:0.8rem;">$1</code>')
+                .replace(/^\> (.*$)/gim, '<blockquote style="border-left: 3px solid #00f2fe; padding-left: 8px; color:#94a3b8; margin:6px 0;">$1</blockquote>')
+                .replace(/\n\n/gim, '<br><br>')
+                .replace(/\n/gim, '<br>');
+        }
+    </script>
+</body>
+</html>

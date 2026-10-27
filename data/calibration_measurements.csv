@@ -1,0 +1,18 @@
+calibrationId,parameterName,nominal,measured,unit,tolerance,deviation,passed
+CAL-2001,Tidal Volume Output,500.0,503.2,mL,15.0,3.2,true
+CAL-2001,PEEP Pressure,10.0,10.1,cmH2O,1.0,0.1,true
+CAL-2001,FiO2 Oxygen Concentration,50.0,49.8,%,2.0,0.2,true
+CAL-2002,Energy Discharge (200J),200.0,198.5,Joules,6.0,1.5,true
+CAL-2002,Pacer Current (100mA),100.0,99.4,mA,3.0,0.6,true
+CAL-2002,Charge Time to Max Energy,4.5,4.2,seconds,1.0,0.3,true
+CAL-2003,HR Amplitude (1mV pulse),1.0,1.01,mV,0.05,0.01,true
+CAL-2003,SpO2 Optical Calibration,98.0,98.2,%,1.5,0.2,true
+CAL-2003,NIBP Systolic Simulation,120.0,121.0,mmHg,3.0,1.0,true
+CAL-2004,kVp Output (80 kVp),80.0,80.4,kVp,2.0,0.4,true
+CAL-2004,mAs Accuracy (20 mAs),20.0,19.8,mAs,1.0,0.2,true
+CAL-2004,Radiation Timer (100 ms),100.0,99.2,ms,2.0,0.8,true
+CAL-2005,Transducer Acoustic Output,10.0,9.9,mW/cm2,0.5,0.1,true
+CAL-2005,Depth Caliper Distance (100mm),100.0,100.2,mm,1.0,0.2,true
+CAL-2006,Rotational Speed (4000 RPM),4000.0,4005.0,RPM,25.0,5.0,true
+CAL-2006,Chamber Temperature (4.0 C),4.0,4.2,deg C,0.8,0.2,true
+CAL-2006,Run Timer Accuracy (30 min),1800.0,1798.5,seconds,5.0,1.5,true

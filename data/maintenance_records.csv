@@ -1,0 +1,2 @@
+type,id,deviceId,technicianId,maintType,status,cost,downtimeHours,workDesc,parts,checklist,scheduled,started,completed,resolutionNotes
+PreventiveMaintenance,MNT-3001,DEV-1008,TECH-101,PREVENTIVE,IN_PROGRESS,0,0.0,Routine sensor cassette replacement and fluidic flush,,,N/A,2026-10-27 08:41:41,N/A,

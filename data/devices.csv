@@ -1,0 +1,9 @@
+type,id,assetNumber,serialNumber,name,manufacturer,modelNumber,department,category,riskLevel,status,calibRequired,frequencyDays,lastCalib,nextCalib,assignedTech,extraParams
+LifeSupportDevice,DEV-1001,AST-VENT-01,SN-PB980-4102,Puritan Bennett 980 Ventilator,Medtronic,PB980,Intensive Care Unit (ICU),LIFE_SUPPORT,CRITICAL,OPERATIONAL,true,180,2026-08-13,2027-02-09,TECH-101,180;true
+LifeSupportDevice,DEV-1002,AST-DEFIB-02,SN-ZOLL-8821,Zoll R Series Defibrillator,Zoll Medical,R-Series Plus,Emergency Department,LIFE_SUPPORT,CRITICAL,OPERATIONAL,true,90,2026-07-19,2026-10-17,TECH-101,120;true
+DiagnosticDevice,DEV-1003,AST-ECG-03,SN-PHIL-1920,IntelliVue MX800 Patient Monitor,Philips Healthcare,MX800,Cardiology,DIAGNOSTIC,MEDIUM,OPERATIONAL,true,365,2026-05-13,2027-05-13,TECH-102,false;v4.2.1
+DiagnosticDevice,DEV-1004,AST-XRAY-04,SN-SIEM-7733,Mobilett Elara Max Mobile X-Ray,Siemens Healthineers,Elara Max,Radiology,DIAGNOSTIC,HIGH,OPERATIONAL,true,180,2026-02-13,2026-08-12,TECH-102,true;v3.0.0
+DiagnosticDevice,DEV-1005,AST-US-05,SN-GELOG-5510,LOGIQ E10 Ultrasound Console,GE Healthcare,LOGIQ E10,Obstetrics & Gynecology,DIAGNOSTIC,MEDIUM,OPERATIONAL,true,365,2026-09-13,2027-09-13,TECH-102,false;v2.4.0
+LaboratoryDevice,DEV-1006,AST-CENT-06,SN-EPP-9912,5810 R Multipurpose Centrifuge,Eppendorf,5810 R,Central Pathology Lab,LABORATORY,LOW,OPERATIONAL,true,180,2026-08-13,2027-02-09,TECH-101,true;4.0;2
+LifeSupportDevice,DEV-1007,AST-PUMP-07,SN-BD-6611,Alaris 8015 Infusion System,Becton Dickinson,Alaris 8015,Pediatric Ward,LIFE_SUPPORT,CRITICAL,CALIBRATION_PENDING,true,180,N/A,N/A,TECH-101,240;true
+LaboratoryDevice,DEV-1008,AST-BGA-08,SN-RAD-3301,ABL90 FLEX Blood Gas Analyzer,Radiometer,ABL90,Stat Laboratory,LABORATORY,LOW,UNDER_MAINTENANCE,true,90,N/A,N/A,TECH-102,false;22.0;1

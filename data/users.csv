@@ -1,0 +1,6 @@
+type,id,username,passwordHash,salt,role,fullName,email,phone,department,active,certNo,specialization,yearsExp,available
+User,USR-001,admin,eea94f1a633e0caf1f059d3d5c176b45355139f0c693ae0e9a359f031e7b64dc,d68a3f55a8dd32efd70d24b4a683a3e5,ADMIN,Dr. Eleanor Vance,admin@hospital.org,555-0100,Hospital Administration,true,,,,
+Technician,TECH-101,tech1,84acdf4abc8e369a6c43469d2194e8484212b6fa686b36d4ac0fabb33637e9fe,c9a2595be354e788fb5ae49418297eca,TECHNICIAN,Marcus Rivera,tech1@hospital.org,555-0201,Biomedical Engineering,true,CBET-2024-991,Life-Support Systems,7,true
+Technician,TECH-102,tech2,c093fee6c5e150d256ef686dc65ede80b572c39cc28ac9ccc666fb142b5515b0,73f2ffac7e3404369ad73cfe95be5b5f,TECHNICIAN,Dr. Sarah Lin,tech2@hospital.org,555-0202,Diagnostic Physics,true,CBET-2023-412,Diagnostic & Radiation Equipment,10,true
+User,USR-002,staff1,dd6bae5a2e8057b30bedf732548bc901c4e0dee351a06b3f505143d062ee90d3,b354799b43d979731e276d0d93591835,STAFF,Nurse Jennifer Blake,nurse.blake@hospital.org,555-0301,Intensive Care Unit (ICU),true,,,,
+User,USR-003,auditor1,73375aa1e826104c7e277acb649c178d1d4927b4a60460d1b0b2d86af6688305,3bb9c5e58455b7e10fd8496100b260a1,AUDITOR,Inspector Arthur Dent,auditor@hospital.org,555-0401,Clinical Quality Assurance,true,,,,

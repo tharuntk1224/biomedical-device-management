@@ -1,0 +1,2 @@
+id,deviceId,requestedBy,type,description,status,assignedTech,recordId,requestedAt,scheduledAt
+REQ-4001,DEV-1008,admin,PREVENTIVE,Routine sensor cassette replacement and fluidic flush,IN_PROGRESS,TECH-101,MNT-3001,2026-10-13 19:42:46,N/A
